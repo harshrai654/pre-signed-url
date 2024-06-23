@@ -17,7 +17,7 @@
   <script>
     document
       .getElementById("uploadForm")
-      .addEventListener("submit", function (e) {
+      .addEventListener("submit", async function (e) {
         e.preventDefault(); // Prevent default form submission
 
         const fileInput = document.getElementById("img");
@@ -31,21 +31,37 @@
             lastModified: file.lastModified,
           };
 
-          // Send POST request with file metadata
-          fetch("/upload", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(metadata),
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              console.log("Success:", data);
-            })
-            .catch((error) => {
-              console.error("Error:", error);
+          try {
+            // Send POST request with file metadata
+            const response = await fetch("/upload", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(metadata),
             });
+
+            const { uploadUrl, blobName } = await response.json();
+
+            const uploadResponse = await fetch(uploadUrl, {
+              method: "PUT",
+              body: file,
+              headers: {
+                "x-ms-blob-type": "BlockBlob",
+                "Content-Type": file.type,
+              },
+            });
+
+            if (uploadResponse.ok) {
+              console.log("File uploaded successfully. Blob name:", blobName);
+            } else {
+              throw new Error(
+                `Upload failed with status: ${uploadResponse.status}`
+              );
+            }
+          } catch (error) {
+            console.error("Error:", error);
+          }
         } else {
           console.log("No file selected");
         }
