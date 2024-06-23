@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image upload service</title>
+  </head>
+  <body>
+    <h1>Image upload service</h1>
+    <form id="uploadForm">
+      <label for="img">Select image:</label>
+      <input type="file" id="img" name="img" accept="image/*" />
+      <br />
+      <input type="submit" value="Upload" />
+    </form>
+  </body>
+  <script>
+    document
+      .getElementById("uploadForm")
+      .addEventListener("submit", function (e) {
+        e.preventDefault(); // Prevent default form submission
+
+        const fileInput = document.getElementById("img");
+        const file = fileInput.files[0];
+
+        if (file) {
+          const metadata = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            lastModified: file.lastModified,
+          };
+
+          // Send POST request with file metadata
+          fetch("/upload", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(metadata),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("Success:", data);
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        } else {
+          console.log("No file selected");
+        }
+      });
+  </script>
+</html>
